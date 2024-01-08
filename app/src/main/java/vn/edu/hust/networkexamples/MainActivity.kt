@@ -9,11 +9,17 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -43,31 +49,58 @@ class MainActivity : AppCompatActivity() {
             downloadFile()
         }
 
-        try {
-            val jsonString = "[{\"name\":\"John\", \"age\":20, \"gender\":\"male\"}, {\"name\":\"Peter\", \"age\":21, \"gender\":\"male\"}, {\"name\":\"July\", \"age\":19, \"gender\":\"female\"}]"
-            val jArr = JSONArray(jsonString)
-            repeat(jArr.length()) {
-                val jObj = jArr.getJSONObject(it)
-                val name = jObj.getString("name")
-                val age = jObj.getInt("age")
-                val gender = jObj.getString("gender")
-                Log.v("TAG", "$name - $age - $gender")
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
+//        try {
+//            val jsonString = "[{\"name\":\"John\", \"age\":20, \"gender\":\"male\"}, {\"name\":\"Peter\", \"age\":21, \"gender\":\"male\"}, {\"name\":\"July\", \"age\":19, \"gender\":\"female\"}]"
+//            val jArr = JSONArray(jsonString)
+//            repeat(jArr.length()) {
+//                val jObj = jArr.getJSONObject(it)
+//                val name = jObj.getString("name")
+//                val age = jObj.getInt("age")
+//                val gender = jObj.getString("gender")
+//                Log.v("TAG", "$name - $age - $gender")
+//            }
+//        } catch (ex: Exception) {
+//            ex.printStackTrace()
+//        }
+
+//        val jsonObject = JSONObject()
+//        jsonObject.put("MSSV", 20204939)
+//        jsonObject.put("Hoten", "Nguyen Co Tuan Anh")
+//        val jAddress = JSONObject()
+//        jAddress.put("Tinh/Thanh", "Ha Noi")
+//        jAddress.put("Quan/Huyen", "Hoai Duc")
+//        jsonObject.put("Dia chi", jAddress)
+//
+//        Log.v("TAG", jsonObject.toString())
+
+//        getUsers()
+
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://jsonplaceholder.typicode.com/")
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+        val myService = retrofit.create(MyService::class.java)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+//            val posts = myService.listAllPosts()
+//            Log.v("TAG", "Num posts: ${posts.size}")
+//            for (post in posts) {
+//                Log.v("TAG", post.title)
+//            }
+
+            val post = myService.getPost(1)
+            Log.v("TAG", post.title)
         }
 
-        val jsonObject = JSONObject()
-        jsonObject.put("MSSV", 20204939)
-        jsonObject.put("Hoten", "Nguyen Co Tuan Anh")
-        val jAddress = JSONObject()
-        jAddress.put("Tinh/Thanh", "Ha Noi")
-        jAddress.put("Quan/Huyen", "Hoai Duc")
-        jsonObject.put("Dia chi", jAddress)
-
-        Log.v("TAG", jsonObject.toString())
-
-        getUsers()
+        Glide.with(this)
+            .load("https://lebavui.github.io/walls/wall.jpg")
+            .apply(RequestOptions()
+                .placeholder(R.drawable.baseline_downloading_24)
+                .error(R.drawable.baseline_error_outline_24))
+            .into(findViewById(R.id.imageView))
     }
 
     fun getUsers() {
